@@ -9,7 +9,6 @@ public class Project {
         this.name = name;
     }
 
-    // Геттеры и, при необходимости, сеттеры
     public int getId() {
         return id;
     }

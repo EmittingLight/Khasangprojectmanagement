@@ -8,7 +8,7 @@ public class Main {
         // Инициализация базы данных
         DatabaseManager.initializeDatabase();
 
-        // Импорт данных из Excel (укажите корректный путь к файлу)
+        // Импорт данных из Excel
         ExcelImporter.importFromExcel("project_tasks_filled_corrected_updated.xlsx");
 
 

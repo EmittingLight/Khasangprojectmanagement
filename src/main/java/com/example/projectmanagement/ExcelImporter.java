@@ -11,10 +11,6 @@ import java.util.Date;
 
 public class ExcelImporter {
 
-    /**
-     * Импортирует данные из excel-файла в базу данных.
-     * @param excelFilePath путь к файлу (например, "data.xlsx")
-     */
     public static void importFromExcel(String excelFilePath) {
         try (FileInputStream fis = new FileInputStream(excelFilePath);
              Workbook workbook = new XSSFWorkbook(fis);
