@@ -116,9 +116,21 @@ public class ExcelImporter {
     // Метод для вставки задачи в таблицу tasks
     private static void insertTask(Connection conn, int projectId, int responsibleId, String taskName,
                                    String startDate, int duration, int finished) throws SQLException {
-        String insertTaskSQL = "INSERT INTO tasks (project_id, responsible_id, task_name, start_date, duration, finished) " +
+        String checkIfExistsSQL = "SELECT COUNT(*) FROM tasks WHERE task_name = ? AND start_date = ?";
+        try (PreparedStatement checkStmt = conn.prepareStatement(checkIfExistsSQL)) {
+            checkStmt.setString(1, taskName);
+            checkStmt.setString(2, startDate);
+            ResultSet rs = checkStmt.executeQuery();
+            if (rs.next() && rs.getInt(1) > 0) {
+                System.out.println("Задача уже существует: " + taskName);
+                return; // Если такая задача уже есть, не вставляем её заново
+            }
+        }
+
+        String insertSQL = "INSERT INTO tasks (project_id, responsible_id, task_name, start_date, duration, finished) " +
                 "VALUES (?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement pstmt = conn.prepareStatement(insertTaskSQL)) {
+
+        try (PreparedStatement pstmt = conn.prepareStatement(insertSQL)) {
             pstmt.setInt(1, projectId);
             pstmt.setInt(2, responsibleId);
             pstmt.setString(3, taskName);
@@ -126,6 +138,7 @@ public class ExcelImporter {
             pstmt.setInt(5, duration);
             pstmt.setInt(6, finished);
             pstmt.executeUpdate();
+            System.out.println("Добавлена задача: " + taskName);
         }
     }
 }
