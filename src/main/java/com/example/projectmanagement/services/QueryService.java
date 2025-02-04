@@ -40,15 +40,10 @@ public class QueryService {
 
     // 2. Количество незавершённых задач по проекту
     public int getUnfinishedTaskCount(String projectName) {
-        // Проверяем, что введено латинское название проекта
-        if (!projectName.matches("^[A-Za-z0-9 ]+$")) {
-            JOptionPane.showMessageDialog(null,
-                    "Ошибка: Название проекта должно содержать только латинские буквы и цифры!",
-                    "Некорректный ввод", JOptionPane.ERROR_MESSAGE);
-            return -1; // Возвращаем -1, чтобы показать, что произошла ошибка
+        if (projectName == null || projectName.trim().isEmpty()) {
+            return 0;
         }
 
-        // Приводим название проекта к нижнему регистру и убираем лишние пробелы
         projectName = projectName.trim().toLowerCase();
 
         String sql = "SELECT COUNT(t.id) as count " +
@@ -61,14 +56,13 @@ public class QueryService {
             pstmt.setString(1, projectName);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
-                return rs.getInt("count"); // Возвращаем количество незавершённых задач
+                return Math.max(rs.getInt("count"), 0);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return 0; // Если ничего не найдено
+        return 0;
     }
-
 
     public List<Task> getUnfinishedTasksForResponsible(String responsibleName) {
         List<Task> tasks = new ArrayList<>();
@@ -190,6 +184,21 @@ public class QueryService {
         return names;
     }
 
+    public List<String> getAllProjects() {
+        List<String> projectNames = new ArrayList<>();
+        String sql = "SELECT DISTINCT name FROM projects";
 
+        try (Connection conn = DatabaseManager.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                projectNames.add(rs.getString("name").trim());
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return projectNames;
+    }
 }
 
