@@ -122,7 +122,7 @@ public class ExcelImporter {
             checkStmt.setString(2, startDate);
             ResultSet rs = checkStmt.executeQuery();
             if (rs.next() && rs.getInt(1) > 0) {
-                System.out.println("Задача уже существует: " + taskName);
+                //System.out.println("Задача уже существует: " + taskName);
                 return; // Если такая задача уже есть, не вставляем её заново
             }
         }

@@ -12,7 +12,6 @@ import java.util.List;
 public class MainWindow extends JFrame {
     private QueryService queryService;
     private JTextArea textArea;
-    private JTextField responsibleField; // для ввода имени ответственного
 
     public MainWindow() {
         queryService = new QueryService();
@@ -25,63 +24,47 @@ public class MainWindow extends JFrame {
     }
 
     private void initUI() {
-        // Создаем панель для кнопок с вертикальным расположением
         JPanel panelButtons = new JPanel();
         panelButtons.setLayout(new BoxLayout(panelButtons, BoxLayout.Y_AXIS));
 
-        // Создаем кнопку "Активные проекты"
         JButton btnActiveProjects = new JButton("Активные проекты");
         btnActiveProjects.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnActiveProjects.addActionListener(e -> showActiveProjects());
         panelButtons.add(btnActiveProjects);
-        panelButtons.add(Box.createRigidArea(new Dimension(0, 10))); // Добавляем вертикальный отступ
+        panelButtons.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        // Создаем кнопку "Незавершённые задачи по проекту"
         JButton btnUnfinishedCount = new JButton("Незавершённые задачи по проекту");
         btnUnfinishedCount.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnUnfinishedCount.addActionListener(e -> showUnfinishedTaskCount());
         panelButtons.add(btnUnfinishedCount);
         panelButtons.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        // Создаем кнопку "Незавершённые задачи для ответственного"
         JButton btnTasksForResponsible = new JButton("Незавершённые задачи для ответственного");
         btnTasksForResponsible.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnTasksForResponsible.addActionListener(e -> showUnfinishedTasksForResponsible());
         panelButtons.add(btnTasksForResponsible);
         panelButtons.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        // Создаем кнопку "Задачи на сегодня"
         JButton btnTasksToday = new JButton("Задачи на сегодня");
         btnTasksToday.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnTasksToday.addActionListener(e -> showTasksForToday());
         panelButtons.add(btnTasksToday);
         panelButtons.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        // Создаем кнопку "Просроченные задачи"
         JButton btnOverdue = new JButton("Просроченные задачи");
         btnOverdue.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnOverdue.addActionListener(e -> showOverdueResponsibles());
         panelButtons.add(btnOverdue);
         panelButtons.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        // Можно добавить поле ввода имени ответственного в эту же панель или разместить его отдельно
-        panelButtons.add(new JLabel("Ответственный:"));
-        responsibleField = new JTextField(15);
-        responsibleField.setMaximumSize(new Dimension(200, 25));
-        panelButtons.add(responsibleField);
-
-        // Создаем текстовую область для вывода результатов
         textArea = new JTextArea();
         textArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(textArea);
 
-        // Настраиваем основное окно: текстовая область по центру, панель с кнопками справа
         setLayout(new BorderLayout());
         add(scrollPane, BorderLayout.CENTER);
         add(panelButtons, BorderLayout.EAST);
     }
-
-
 
     private void showActiveProjects() {
         List<Project> projects = queryService.getActiveProjects();
@@ -101,18 +84,52 @@ public class MainWindow extends JFrame {
     }
 
     private void showUnfinishedTasksForResponsible() {
-        String name = responsibleField.getText().trim();
-        if (name.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Введите имя ответственного в поле!", "Ошибка", JOptionPane.ERROR_MESSAGE);
+        List<String> responsibleNames = queryService.getAllResponsibles();
+        if (responsibleNames.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Нет доступных ответственных!", "Ошибка", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        List<Task> tasks = queryService.getUnfinishedTasksForResponsible(name);
-        StringBuilder sb = new StringBuilder("Незавершённые задачи для " + name + ":\n");
-        for (Task t : tasks) {
-            sb.append(t).append("\n");
+
+        String selectedResponsible = (String) JOptionPane.showInputDialog(
+                this,
+                "Выберите ответственного:",
+                "Выбор ответственного",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                responsibleNames.toArray(),
+                responsibleNames.get(0)
+        );
+
+        if (selectedResponsible != null) {
+            List<Task> tasks = queryService.getUnfinishedTasksForResponsible(selectedResponsible);
+            StringBuilder sb = new StringBuilder("Незавершённые задачи для " + selectedResponsible + ":\n");
+            for (Task t : tasks) {
+                sb.append(t).append("\n");
+            }
+            textArea.setText(sb.toString());
         }
-        textArea.setText(sb.toString());
     }
+
+    private String getResponsibleFromUser() {
+        List<String> responsibleNames = queryService.getAllResponsibles(); // Получаем список всех ответственных
+        if (responsibleNames.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Нет доступных ответственных!", "Ошибка", JOptionPane.ERROR_MESSAGE);
+            return null;
+        }
+
+        String selectedName = (String) JOptionPane.showInputDialog(
+                this,
+                "Выберите ответственного:",
+                "Выбор ответственного",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                responsibleNames.toArray(),
+                responsibleNames.get(0)
+        );
+
+        return selectedName;
+    }
+
 
     private void showTasksForToday() {
         List<Task> tasks = queryService.getTasksForToday();

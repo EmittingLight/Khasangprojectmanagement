@@ -142,10 +142,6 @@ public class QueryService {
         return tasks;
     }
 
-
-
-
-
     // 5. Ответственные с просроченными задачами
     // Здесь мы считаем, что задача просрочена, если: current_date > (start_date + duration)
     public List<Responsible> getOverdueResponsibles() {
@@ -176,5 +172,23 @@ public class QueryService {
         }
         return responsibles;
     }
+
+    public List<String> getAllResponsibles() {
+        List<String> names = new ArrayList<>();
+        String sql = "SELECT name FROM responsibles";
+
+        try (Connection conn = DatabaseManager.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                names.add(rs.getString("name"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return names;
+    }
+
 }
 
