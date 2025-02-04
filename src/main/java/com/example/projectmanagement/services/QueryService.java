@@ -175,20 +175,21 @@ public class QueryService {
 
     public List<String> getAllResponsibles() {
         List<String> names = new ArrayList<>();
-        String sql = "SELECT name FROM responsibles";
+        String sql = "SELECT DISTINCT name FROM responsibles";
 
         try (Connection conn = DatabaseManager.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
-                names.add(rs.getString("name"));
+                names.add(rs.getString("name").trim()); // Убираем возможные пробелы
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return names;
     }
+
 
 }
 

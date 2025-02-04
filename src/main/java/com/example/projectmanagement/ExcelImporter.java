@@ -138,7 +138,7 @@ public class ExcelImporter {
             pstmt.setInt(5, duration);
             pstmt.setInt(6, finished);
             pstmt.executeUpdate();
-            System.out.println("Добавлена задача: " + taskName);
+            //System.out.println("Добавлена задача: " + taskName);
         }
     }
 }
