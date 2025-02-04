@@ -17,7 +17,24 @@ public class QueryService {
 
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    // 1. Проекты с незавершёнными задачами
+    // Получить все проекты
+    public List<String> getAllProjects() {
+        List<String> projects = new ArrayList<>();
+        String sql = "SELECT name FROM projects";
+
+        try (Connection conn = DatabaseManager.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                projects.add(rs.getString("name"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return projects;
+    }
+
     public List<Project> getActiveProjects() {
         List<Project> projects = new ArrayList<>();
         String sql = "SELECT DISTINCT p.id, p.name " +
@@ -38,7 +55,6 @@ public class QueryService {
         return projects;
     }
 
-    // 2. Количество незавершённых задач по проекту
     public int getUnfinishedTaskCount(String projectName) {
         if (projectName == null || projectName.trim().isEmpty()) {
             return 0;
@@ -63,11 +79,8 @@ public class QueryService {
         return 0;
     }
 
-    // 3. Незавершённые задачи для одного ответственного
     public List<Task> getUnfinishedTasksForResponsible(String responsibleName) {
         List<Task> tasks = new ArrayList<>();
-        Set<String> uniqueTasks = new HashSet<>();
-
         String sql = "SELECT DISTINCT t.id, t.project_id, t.responsible_id, t.task_name, t.start_date, t.duration, t.finished " +
                 "FROM tasks t " +
                 "JOIN responsibles r ON t.responsible_id = r.id " +
@@ -80,19 +93,15 @@ public class QueryService {
             ResultSet rs = pstmt.executeQuery();
 
             while (rs.next()) {
-                String taskIdentifier = rs.getString("task_name") + rs.getString("start_date");
-                if (!uniqueTasks.contains(taskIdentifier)) {
-                    tasks.add(new Task(
-                            rs.getInt("id"),
-                            rs.getInt("project_id"),
-                            rs.getInt("responsible_id"),
-                            rs.getString("task_name"),
-                            rs.getString("start_date"),
-                            rs.getInt("duration"),
-                            rs.getInt("finished") == 1
-                    ));
-                    uniqueTasks.add(taskIdentifier);
-                }
+                tasks.add(new Task(
+                        rs.getInt("id"),
+                        rs.getInt("project_id"),
+                        rs.getInt("responsible_id"),
+                        rs.getString("task_name"),
+                        rs.getString("start_date"),
+                        rs.getInt("duration"),
+                        rs.getInt("finished") == 1
+                ));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -100,11 +109,10 @@ public class QueryService {
         return tasks;
     }
 
-    // 4. Задачи на сегодня
     public List<Task> getTasksForToday() {
         List<Task> tasks = new ArrayList<>();
         Set<String> uniqueTasks = new HashSet<>();
-        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String today = LocalDate.now().format(formatter);
 
         String sql = "SELECT DISTINCT t.id, t.project_id, t.responsible_id, t.task_name, t.start_date, t.duration, t.finished " +
                 "FROM tasks t WHERE DATE(t.start_date) = DATE(?)";
@@ -135,25 +143,6 @@ public class QueryService {
         return tasks;
     }
 
-    // 5. Получить всех ответственных
-    public List<String> getAllResponsibles() {
-        List<String> responsibles = new ArrayList<>();
-        String sql = "SELECT name FROM responsibles";
-
-        try (Connection conn = DatabaseManager.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-
-            while (rs.next()) {
-                responsibles.add(rs.getString("name"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return responsibles;
-    }
-
-    // 6. Получить ответственных с просроченными задачами
     public List<Responsible> getOverdueResponsibles() {
         List<Responsible> responsibles = new ArrayList<>();
         String sql = "SELECT DISTINCT r.id, r.name, r.contact " +
@@ -172,6 +161,23 @@ public class QueryService {
                         rs.getString("name"),
                         rs.getString("contact")
                 ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return responsibles;
+    }
+
+    public List<String> getAllResponsibles() {
+        List<String> responsibles = new ArrayList<>();
+        String sql = "SELECT name FROM responsibles";
+
+        try (Connection conn = DatabaseManager.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                responsibles.add(rs.getString("name"));
             }
         } catch (SQLException e) {
             e.printStackTrace();

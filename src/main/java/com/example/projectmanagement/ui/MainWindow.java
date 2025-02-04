@@ -35,7 +35,7 @@ public class MainWindow extends JFrame {
 
         JButton btnUnfinishedCount = new JButton("Незавершённые задачи по проекту");
         btnUnfinishedCount.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btnUnfinishedCount.addActionListener(e -> showUnfinishedTaskCount());
+        btnUnfinishedCount.addActionListener(e -> showUnfinishedTaskCountForProject());
         panelButtons.add(btnUnfinishedCount);
         panelButtons.add(Box.createRigidArea(new Dimension(0, 10)));
 
@@ -75,11 +75,26 @@ public class MainWindow extends JFrame {
         textArea.setText(sb.toString());
     }
 
-    private void showUnfinishedTaskCount() {
-        String projectName = JOptionPane.showInputDialog(this, "Введите название проекта:");
-        if (projectName != null && !projectName.isEmpty()) {
-            int count = queryService.getUnfinishedTaskCount(projectName);
-            textArea.setText("Проект " + projectName + " имеет " + count + " незавершённых задач.");
+    private void showUnfinishedTaskCountForProject() {
+        List<String> projectNames = queryService.getAllProjects();
+        if (projectNames.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Нет доступных проектов!", "Ошибка", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String selectedProject = (String) JOptionPane.showInputDialog(
+                this,
+                "Выберите проект:",
+                "Выбор проекта",
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                projectNames.toArray(),
+                projectNames.get(0)
+        );
+
+        if (selectedProject != null) {
+            int count = queryService.getUnfinishedTaskCount(selectedProject);
+            textArea.setText("Проект " + selectedProject + " имеет " + count + " незавершённых задач.");
         }
     }
 
@@ -109,27 +124,6 @@ public class MainWindow extends JFrame {
             textArea.setText(sb.toString());
         }
     }
-
-    private String getResponsibleFromUser() {
-        List<String> responsibleNames = queryService.getAllResponsibles(); // Получаем список всех ответственных
-        if (responsibleNames.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Нет доступных ответственных!", "Ошибка", JOptionPane.ERROR_MESSAGE);
-            return null;
-        }
-
-        String selectedName = (String) JOptionPane.showInputDialog(
-                this,
-                "Выберите ответственного:",
-                "Выбор ответственного",
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                responsibleNames.toArray(),
-                responsibleNames.get(0)
-        );
-
-        return selectedName;
-    }
-
 
     private void showTasksForToday() {
         List<Task> tasks = queryService.getTasksForToday();
