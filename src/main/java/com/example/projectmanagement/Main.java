@@ -9,7 +9,8 @@ public class Main {
         DatabaseManager.initializeDatabase();
 
         // Импорт данных из Excel (укажите корректный путь к файлу)
-        ExcelImporter.importFromExcel("project_management_extended.xlsx");
+        ExcelImporter.importFromExcel("project_tasks_filled_corrected.xlsx");
+
 
         // Запуск графического интерфейса
         SwingUtilities.invokeLater(() -> {
