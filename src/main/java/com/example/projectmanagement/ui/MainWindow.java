@@ -39,7 +39,39 @@ public class MainWindow extends JFrame {
         panelButtons.add(btnUnfinishedCount);
         panelButtons.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        JButton btnTasksForResponsible = new JButton("Незавершённые задачи для ответственного");
+        // === Панель для поиска ответственного ===
+        JPanel responsiblePanel = new JPanel();
+        responsiblePanel.setLayout(new BoxLayout(responsiblePanel, BoxLayout.Y_AXIS));
+        responsiblePanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel responsibleLabel = new JLabel("Введите имя ответственного:");
+        responsibleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JTextField responsibleSearchField = new JTextField(15);
+        responsibleSearchField.setMaximumSize(new Dimension(200, 30));
+        responsibleSearchField.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JButton btnSearchResponsible = new JButton("Поиск по имени");
+        btnSearchResponsible.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btnSearchResponsible.addActionListener(e -> {
+            String inputName = responsibleSearchField.getText().trim();
+            if (!inputName.isEmpty()) {
+                showUnfinishedTasksForResponsible(inputName);
+            } else {
+                JOptionPane.showMessageDialog(this, "Введите имя ответственного!", "Ошибка", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        responsiblePanel.add(responsibleLabel);
+        responsiblePanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        responsiblePanel.add(responsibleSearchField);
+        responsiblePanel.add(Box.createRigidArea(new Dimension(0, 5)));
+        responsiblePanel.add(btnSearchResponsible);
+
+        panelButtons.add(responsiblePanel);
+        panelButtons.add(Box.createRigidArea(new Dimension(0, 10)));
+
+        JButton btnTasksForResponsible = new JButton("Выбрать ответственного из списка");
         btnTasksForResponsible.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnTasksForResponsible.addActionListener(e -> showUnfinishedTasksForResponsible());
         panelButtons.add(btnTasksForResponsible);
@@ -64,6 +96,33 @@ public class MainWindow extends JFrame {
         setLayout(new BorderLayout());
         add(scrollPane, BorderLayout.CENTER);
         add(panelButtons, BorderLayout.EAST);
+    }
+
+
+    private void showUnfinishedTasksForResponsible(String responsibleName) {
+        List<Task> tasks = queryService.getUnfinishedTasksForResponsible(responsibleName);
+
+        if (tasks.isEmpty()) {
+            textArea.setText("Незавершённых задач для \"" + responsibleName + "\" не найдено.");
+            return;
+        }
+
+        // Получаем данные первого ответственного
+        Task firstTask = tasks.get(0);
+        String fullName = firstTask.getResponsibleFullName();
+        String phone = firstTask.getPhone();
+        String email = firstTask.getEmail();
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Незавершённые задачи для: ").append(fullName).append("\n");
+        sb.append("Телефон: ").append(phone).append("\n");
+        sb.append("Email: ").append(email).append("\n\n");
+
+        for (Task t : tasks) {
+            sb.append(t).append("\n");
+        }
+
+        textArea.setText(sb.toString());
     }
 
     private void showActiveProjects() {
@@ -116,12 +175,7 @@ public class MainWindow extends JFrame {
         );
 
         if (selectedResponsible != null) {
-            List<Task> tasks = queryService.getUnfinishedTasksForResponsible(selectedResponsible);
-            StringBuilder sb = new StringBuilder("Незавершённые задачи для " + selectedResponsible + ":\n");
-            for (Task t : tasks) {
-                sb.append(t).append("\n");
-            }
-            textArea.setText(sb.toString());
+            showUnfinishedTasksForResponsible(selectedResponsible);
         }
     }
 

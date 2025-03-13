@@ -81,18 +81,26 @@ public class QueryService {
 
     public List<Task> getUnfinishedTasksForResponsible(String responsibleName) {
         List<Task> tasks = new ArrayList<>();
-        String sql = "SELECT DISTINCT t.id, t.project_id, t.responsible_id, t.task_name, t.start_date, t.duration, t.finished " +
+        String sql = "SELECT DISTINCT t.id, t.project_id, t.responsible_id, " +
+                "r.name AS full_name, " +
+                "CASE WHEN INSTR(r.contact, ',') > 0 THEN SUBSTR(r.contact, 1, INSTR(r.contact, ',') - 1) ELSE r.contact END AS phone, " +
+                "CASE WHEN INSTR(r.contact, ',') > 0 THEN SUBSTR(r.contact, INSTR(r.contact, ',') + 2) ELSE 'Нет email' END AS email, " +
+                "t.task_name, t.start_date, t.duration, t.finished " +
                 "FROM tasks t " +
                 "JOIN responsibles r ON t.responsible_id = r.id " +
-                "WHERE LOWER(TRIM(r.name)) COLLATE NOCASE = LOWER(TRIM(?)) COLLATE NOCASE " +
+                "WHERE LOWER(r.name) LIKE LOWER(?) " +
                 "AND (LOWER(TRIM(t.finished)) COLLATE NOCASE = 'нет' OR t.finished = 0)";
 
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, responsibleName.trim());
+            pstmt.setString(1, "%" + responsibleName.trim() + "%");
             ResultSet rs = pstmt.executeQuery();
 
             while (rs.next()) {
+                String fullName = rs.getString("full_name");
+                String phone = rs.getString("phone");
+                String email = rs.getString("email");
+
                 tasks.add(new Task(
                         rs.getInt("id"),
                         rs.getInt("project_id"),
@@ -100,7 +108,8 @@ public class QueryService {
                         rs.getString("task_name"),
                         rs.getString("start_date"),
                         rs.getInt("duration"),
-                        rs.getInt("finished") == 1
+                        rs.getInt("finished") == 1,
+                        fullName, phone, email
                 ));
             }
         } catch (SQLException e) {
@@ -109,13 +118,18 @@ public class QueryService {
         return tasks;
     }
 
+
     public List<Task> getTasksForToday() {
         List<Task> tasks = new ArrayList<>();
         Set<String> uniqueTasks = new HashSet<>();
         String today = LocalDate.now().format(formatter);
 
-        String sql = "SELECT DISTINCT t.id, t.project_id, t.responsible_id, t.task_name, t.start_date, t.duration, t.finished " +
-                "FROM tasks t WHERE DATE(t.start_date) = DATE(?)";
+        String sql = "SELECT DISTINCT t.id, t.project_id, t.responsible_id, " +
+                "t.task_name, t.start_date, t.duration, t.finished, " +
+                "r.name, r.contact " + // Убрали r.email, его нет в таблице!
+                "FROM tasks t " +
+                "JOIN responsibles r ON t.responsible_id = r.id " +
+                "WHERE DATE(t.start_date) = DATE(?)";
 
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -125,6 +139,10 @@ public class QueryService {
             while (rs.next()) {
                 String taskIdentifier = rs.getString("task_name") + rs.getString("start_date");
                 if (!uniqueTasks.contains(taskIdentifier)) {
+                    String contact = rs.getString("contact");
+                    String phone = contact.split(",")[0].trim();  // Телефон
+                    String email = extractEmail(contact);  // Email
+
                     tasks.add(new Task(
                             rs.getInt("id"),
                             rs.getInt("project_id"),
@@ -132,7 +150,10 @@ public class QueryService {
                             rs.getString("task_name"),
                             rs.getString("start_date"),
                             rs.getInt("duration"),
-                            rs.getInt("finished") == 1
+                            rs.getInt("finished") == 1,
+                            rs.getString("name"),  // ФИО
+                            phone,  // Телефон
+                            email   // Email
                     ));
                     uniqueTasks.add(taskIdentifier);
                 }
@@ -142,6 +163,13 @@ public class QueryService {
         }
         return tasks;
     }
+
+    private String extractEmail(String contact) {
+        if (contact == null || !contact.contains(",")) return "Неизвестно";
+        String[] parts = contact.split(",");
+        return parts.length > 1 ? parts[1].trim() : "Неизвестно";
+    }
+
 
     public List<Responsible> getOverdueResponsibles() {
         List<Responsible> responsibles = new ArrayList<>();

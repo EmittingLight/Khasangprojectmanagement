@@ -5,11 +5,16 @@ public class Task {
     private int projectId;
     private int responsibleId;
     private String taskName;
-    private String startDate; // формат "yyyy-MM-dd"
-    private int duration; // в днях
+    private String startDate;
+    private int duration;
     private boolean finished;
+    private String responsibleFullName;
+    private String phone;
+    private String email;
 
-    public Task(int id, int projectId, int responsibleId, String taskName, String startDate, int duration, boolean finished) {
+    public Task(int id, int projectId, int responsibleId, String taskName,
+                String startDate, int duration, boolean finished,
+                String responsibleFullName, String phone, String email) {
         this.id = id;
         this.projectId = projectId;
         this.responsibleId = responsibleId;
@@ -17,6 +22,21 @@ public class Task {
         this.startDate = startDate;
         this.duration = duration;
         this.finished = finished;
+        this.responsibleFullName = responsibleFullName;
+        this.phone = phone;
+        this.email = email;
+    }
+
+    public String getResponsibleFullName() {
+        return responsibleFullName;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public String getEmail() {
+        return email;
     }
 
     public int getId() {
@@ -52,4 +72,3 @@ public class Task {
         return taskName + " (Старт: " + startDate + ", длительность: " + duration + " дней, завершена: " + finished + ")";
     }
 }
-
