@@ -88,18 +88,19 @@ public class QueryService {
                 "t.task_name, t.start_date, t.duration, t.finished " +
                 "FROM tasks t " +
                 "JOIN responsibles r ON t.responsible_id = r.id " +
-                "WHERE LOWER(r.name) LIKE LOWER(?) " +
+                "WHERE LOWER(r.name) LIKE LOWER(?) " + // Поиск по всей строке (Имя Фамилия)
                 "AND (LOWER(TRIM(t.finished)) COLLATE NOCASE = 'нет' OR t.finished = 0)";
 
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, "%" + responsibleName.trim() + "%");
+            pstmt.setString(1, "%" + responsibleName.trim() + "%"); // Поиск в любом месте имени
+
             ResultSet rs = pstmt.executeQuery();
 
             while (rs.next()) {
-                String fullName = rs.getString("full_name");
-                String phone = rs.getString("phone");
-                String email = rs.getString("email");
+                String fullName = rs.getString("full_name").trim();
+                String phone = rs.getString("phone").trim();
+                String email = rs.getString("email").trim();
 
                 tasks.add(new Task(
                         rs.getInt("id"),
@@ -117,7 +118,6 @@ public class QueryService {
         }
         return tasks;
     }
-
 
     public List<Task> getTasksForToday() {
         List<Task> tasks = new ArrayList<>();
