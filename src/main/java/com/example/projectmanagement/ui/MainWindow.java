@@ -100,6 +100,13 @@ public class MainWindow extends JFrame {
 
 
     private void showUnfinishedTasksForResponsible(String responsibleName) {
+        // Проверяем, существует ли сотрудник
+        if (!queryService.isResponsibleExists(responsibleName)) {
+            textArea.setText("Сотрудника с именем '" + responsibleName + "' не существует.");
+            return; // Прекращаем выполнение, если сотрудник не найден
+        }
+
+        // Если сотрудник существует, ищем задачи
         List<Task> tasks = queryService.getUnfinishedTasksForResponsible(responsibleName);
 
         if (tasks.isEmpty()) {

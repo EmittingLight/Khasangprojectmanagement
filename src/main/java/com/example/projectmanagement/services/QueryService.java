@@ -81,6 +81,14 @@ public class QueryService {
 
     public List<Task> getUnfinishedTasksForResponsible(String responsibleName) {
         List<Task> tasks = new ArrayList<>();
+
+        // Проверяем, существует ли сотрудник
+        if (!isResponsibleExists(responsibleName)) {
+            System.out.println("Сотрудника с именем '" + responsibleName + "' не существует.");
+            return tasks; // Возвращаем пустой список, если сотрудник не найден
+        }
+
+        // Если сотрудник существует, выполняем поиск задач
         String sql = "SELECT DISTINCT t.id, t.project_id, t.responsible_id, " +
                 "r.name AS full_name, " +
                 "CASE WHEN INSTR(r.contact, ',') > 0 THEN SUBSTR(r.contact, 1, INSTR(r.contact, ',') - 1) ELSE r.contact END AS phone, " +
@@ -88,12 +96,12 @@ public class QueryService {
                 "t.task_name, t.start_date, t.duration, t.finished " +
                 "FROM tasks t " +
                 "JOIN responsibles r ON t.responsible_id = r.id " +
-                "WHERE LOWER(r.name) LIKE LOWER(?) " + // Поиск по всей строке (Имя Фамилия)
+                "WHERE LOWER(r.name) LIKE LOWER(?) " +
                 "AND (LOWER(TRIM(t.finished)) COLLATE NOCASE = 'нет' OR t.finished = 0)";
 
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, "%" + responsibleName.trim() + "%"); // Поиск в любом месте имени
+            pstmt.setString(1, "%" + responsibleName.trim() + "%");
 
             ResultSet rs = pstmt.executeQuery();
 
@@ -117,6 +125,21 @@ public class QueryService {
             e.printStackTrace();
         }
         return tasks;
+    }
+
+    public boolean isResponsibleExists(String responsibleName) {
+        String sql = "SELECT COUNT(*) AS count FROM responsibles WHERE LOWER(name) LIKE LOWER(?)";
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, "%" + responsibleName.trim() + "%");
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("count") > 0; // Если count > 0, сотрудник существует
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false; // Если что-то пошло не так, считаем, что сотрудника нет
     }
 
     public List<Task> getTasksForToday() {
