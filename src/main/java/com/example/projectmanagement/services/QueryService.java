@@ -83,17 +83,37 @@ public class QueryService {
         List<Task> allTasks = getAllUnfinishedTasks();
         List<Task> result = new ArrayList<>();
 
-        String searchLower = responsibleName.trim().toLowerCase().replaceAll("\\s+", " ");
+        // Ввод пользователя -> в нижний регистр, убираем лишние пробелы
+        String cleanedInput = responsibleName.trim().toLowerCase().replaceAll("\\s+", " ");
+        String[] inputParts = cleanedInput.split(" ");
 
-        for (Task t : allTasks) {
-            String fullNameLower = t.getResponsibleFullName().trim().toLowerCase().replaceAll("\\s+", " ");
-            if (fullNameLower.contains(searchLower)) {
-                result.add(t);
+        for (Task task : allTasks) {
+            String fullName = task.getResponsibleFullName().trim().toLowerCase().replaceAll("\\s+", " ");
+            String[] fullNameParts = fullName.split(" ");
+
+            boolean allMatched = true;
+            for (String part : inputParts) {
+                boolean found = false;
+                for (String namePart : fullNameParts) {
+                    if (namePart.startsWith(part)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    allMatched = false;
+                    break;
+                }
+            }
+
+            if (allMatched) {
+                result.add(task);
             }
         }
 
         return result;
     }
+
 
 
 

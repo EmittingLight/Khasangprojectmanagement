@@ -7,7 +7,9 @@ import com.example.projectmanagement.services.QueryService;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class MainWindow extends JFrame {
     private QueryService queryService;
@@ -100,37 +102,38 @@ public class MainWindow extends JFrame {
 
 
     private void showUnfinishedTasksForResponsible(String responsibleName) {
-        // Проверяем, существует ли сотрудник
-        if (!queryService.isResponsibleExists(responsibleName)) {
-            textArea.setText("Сотрудника с именем '" + responsibleName + "' не существует.");
-            return; // Прекращаем выполнение, если сотрудник не найден
-        }
-
-        // Если сотрудник существует, ищем задачи
         List<Task> tasks = queryService.getUnfinishedTasksForResponsible(responsibleName);
 
         if (tasks.isEmpty()) {
-            textArea.setText("Незавершённых задач для \"" + responsibleName + "\" не найдено.");
+            textArea.setText("Незавершённых задач по запросу \"" + responsibleName + "\" не найдено.");
             return;
         }
 
-        // Получаем данные первого ответственного
-        Task firstTask = tasks.get(0);
-        String fullName = firstTask.getResponsibleFullName();
-        String phone = firstTask.getPhone();
-        String email = firstTask.getEmail();
-
         StringBuilder sb = new StringBuilder();
-        sb.append("Незавершённые задачи для: ").append(fullName).append("\n");
-        sb.append("Телефон: ").append(phone).append("\n");
-        sb.append("Email: ").append(email).append("\n\n");
+        Set<String> printedResponsibles = new HashSet<>();
 
-        for (Task t : tasks) {
-            sb.append(t).append("\n");
+        for (Task task : tasks) {
+            String fullName = task.getResponsibleFullName().trim();
+            String phone = task.getPhone();
+            String email = task.getEmail();
+
+            if (!printedResponsibles.contains(fullName)) {
+                if (!printedResponsibles.isEmpty()) {
+                    sb.append("\n"); // отделяем блоки
+                }
+                sb.append("Незавершённые задачи для: ").append(fullName).append("\n");
+                sb.append("Телефон: ").append(phone).append("\n");
+                sb.append("Email: ").append(email).append("\n\n");
+                printedResponsibles.add(fullName);
+            }
+
+            sb.append(task).append("\n");
         }
 
         textArea.setText(sb.toString());
     }
+
+
 
     private void showActiveProjects() {
         List<Project> projects = queryService.getActiveProjects();
@@ -182,9 +185,10 @@ public class MainWindow extends JFrame {
         );
 
         if (selectedResponsible != null) {
-            showUnfinishedTasksForResponsible(selectedResponsible);
+            showUnfinishedTasksForResponsible(selectedResponsible); // вызываем основной метод
         }
     }
+
 
     private void showTasksForToday() {
         List<Task> tasks = queryService.getTasksForToday();
