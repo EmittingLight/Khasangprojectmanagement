@@ -80,17 +80,13 @@ public class QueryService {
     }
 
     public List<Task> getUnfinishedTasksForResponsible(String responsibleName) {
-        // Получаем все незавершённые задачи
         List<Task> allTasks = getAllUnfinishedTasks();
         List<Task> result = new ArrayList<>();
 
-        // Приводим введённое имя к нижнему регистру
-        String searchLower = responsibleName.toLowerCase();
+        String searchLower = responsibleName.trim().toLowerCase().replaceAll("\\s+", " ");
 
-        // Фильтруем в Java
         for (Task t : allTasks) {
-            // Берём fullName из Task и тоже приводим к нижнему регистру
-            String fullNameLower = t.getResponsibleFullName().toLowerCase();
+            String fullNameLower = t.getResponsibleFullName().trim().toLowerCase().replaceAll("\\s+", " ");
             if (fullNameLower.contains(searchLower)) {
                 result.add(t);
             }
@@ -98,6 +94,7 @@ public class QueryService {
 
         return result;
     }
+
 
 
     public boolean isResponsibleExists(String responsibleName) {
