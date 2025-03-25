@@ -115,28 +115,6 @@ public class QueryService {
     }
 
 
-
-
-    public boolean isResponsibleExists(String responsibleName) {
-        // Получаем всех ответственных из БД
-        List<String> allResponsibles = getAllResponsibles(); // уже есть метод getAllResponsibles()
-
-        // Приводим к нижнему регистру то, что ввёл пользователь
-        String search = responsibleName.trim().toLowerCase();
-
-        // Ищем совпадения
-        for (String rName : allResponsibles) {
-            // rName может быть "Анна Смирнова", "Иван Петров" и т.д.
-            // Приводим к нижнему регистру
-            if (rName.toLowerCase().contains(search)) {
-                return true; // Нашли хоть одно совпадение
-            }
-        }
-        // Если не нашли
-        return false;
-    }
-
-
     public List<Task> getTasksForToday() {
         List<Task> tasks = new ArrayList<>();
         Set<String> uniqueTasks = new HashSet<>();
