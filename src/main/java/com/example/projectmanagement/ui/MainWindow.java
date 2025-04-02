@@ -110,21 +110,23 @@ public class MainWindow extends JFrame {
         }
 
         StringBuilder sb = new StringBuilder();
-        Set<String> printedResponsibles = new HashSet<>();
+        Set<Integer> printedResponsibleIds = new HashSet<>();
 
         for (Task task : tasks) {
+            int responsibleId = task.getResponsibleId();
             String fullName = task.getResponsibleFullName().trim();
             String phone = task.getPhone();
             String email = task.getEmail();
 
-            if (!printedResponsibles.contains(fullName)) {
-                if (!printedResponsibles.isEmpty()) {
-                    sb.append("\n"); // отделяем блоки
+            // Проверяем по ID, а не по имени
+            if (!printedResponsibleIds.contains(responsibleId)) {
+                if (!printedResponsibleIds.isEmpty()) {
+                    sb.append("\n"); // Отделяем блоки
                 }
                 sb.append("Незавершённые задачи для: ").append(fullName).append("\n");
                 sb.append("Телефон: ").append(phone).append("\n");
                 sb.append("Email: ").append(email).append("\n\n");
-                printedResponsibles.add(fullName);
+                printedResponsibleIds.add(responsibleId);
             }
 
             sb.append(task).append("\n");
@@ -132,8 +134,6 @@ public class MainWindow extends JFrame {
 
         textArea.setText(sb.toString());
     }
-
-
 
     private void showActiveProjects() {
         List<Project> projects = queryService.getActiveProjects();

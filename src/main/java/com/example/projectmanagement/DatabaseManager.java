@@ -32,11 +32,12 @@ public class DatabaseManager {
                     + ")");
 
             // Создаём таблицу responsibles (ответственные)
-            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS responsibles ("
-                    + "id INTEGER PRIMARY KEY, "
-                    + "name TEXT UNIQUE, "
-                    + "contact TEXT"
-                    + ")");
+            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS responsibles (" +
+                    "id INTEGER PRIMARY KEY, " +
+                    "name TEXT, " +  // убрали UNIQUE!
+                    "contact TEXT" +
+                    ")");
+
 
             // Создаём таблицу tasks (задачи) с внешними ключами на projects и responsibles
             stmt.executeUpdate("CREATE TABLE IF NOT EXISTS tasks ("

@@ -88,14 +88,16 @@ public class ExcelImporter {
     }
 
     private static int getOrInsertResponsible(Connection conn, String name, String contact) throws SQLException {
-        String selectSQL = "SELECT id FROM responsibles WHERE name = ?";
+        String selectSQL = "SELECT id FROM responsibles WHERE name = ? AND contact = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(selectSQL)) {
             pstmt.setString(1, name);
+            pstmt.setString(2, contact);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
                 return rs.getInt("id");
             }
         }
+
         String insertSQL = "INSERT INTO responsibles (name, contact) VALUES (?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(insertSQL, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, name);
@@ -108,6 +110,7 @@ public class ExcelImporter {
         }
         throw new SQLException("Не удалось вставить ответственного: " + name);
     }
+
 
     private static void insertTask(Connection conn, int projectId, int responsibleId, String taskName,
                                    String startDate, int duration, int finished) throws SQLException {
