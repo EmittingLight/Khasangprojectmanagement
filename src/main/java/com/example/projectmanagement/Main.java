@@ -10,7 +10,9 @@ public class Main {
 
         // Импорт данных из Excel
         //ExcelImporter.importFromExcel("project_tasks_filled_corrected_updated.xlsx");
-        ExcelImporter.importFromExcel("project_tasks_final_all_duplicates.xlsx");
+        //ExcelImporter.importFromExcel("project_tasks_final_all_duplicates.xlsx");
+        //ExcelImporter.importFromExcel("project_tasks_final_all_duplicates_with_today.xlsx");
+        ExcelImporter.importFromExcel("project_tasks_with_10_day_tasks.xlsx");
 
 
         // Запуск графического интерфейса
