@@ -194,8 +194,12 @@ public class MainWindow extends JFrame {
         List<Task> tasks = queryService.getTasksForToday();
         StringBuilder sb = new StringBuilder("Задачи на сегодня:\n");
         for (Task t : tasks) {
-            sb.append(t).append("\n");
+            sb.append(t.getResponsibleFullName()).append("\n");
+            sb.append("Телефон: ").append(t.getPhone()).append("\n");
+            sb.append("Email: ").append(t.getEmail()).append("\n");
+            sb.append(t).append("\n\n");
         }
+
         textArea.setText(sb.toString());
     }
 
