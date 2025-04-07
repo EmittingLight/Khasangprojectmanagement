@@ -69,6 +69,7 @@ public class Task {
 
     @Override
     public String toString() {
-        return taskName + " (Старт: " + startDate + ", длительность: " + duration + " дней, завершена: " + finished + ")";
+        String status = finished ? "Завершена" : "В работе";
+        return taskName + " (Старт: " + startDate + ", длительность: " + duration + " дней, статус: " + status + ")";
     }
 }
