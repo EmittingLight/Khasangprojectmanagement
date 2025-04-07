@@ -46,14 +46,34 @@ public class MainWindow extends JFrame {
         responsiblePanel.setLayout(new BoxLayout(responsiblePanel, BoxLayout.Y_AXIS));
         responsiblePanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel responsibleLabel = new JLabel("Введите имя ответственного:");
+        JLabel responsibleLabel = new JLabel("<html><div style='text-align:center;'><u><font color='red'>Незавершённые проекты</font></u></div></html>", SwingConstants.CENTER);
         responsibleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JTextField responsibleSearchField = new JTextField(15);
+
+        JTextField responsibleSearchField = new JTextField("Введите ФИО ответственного", 15);
         responsibleSearchField.setMaximumSize(new Dimension(200, 30));
         responsibleSearchField.setAlignmentX(Component.CENTER_ALIGNMENT);
+        responsibleSearchField.setForeground(Color.GRAY);
 
-        JButton btnSearchResponsible = new JButton("Поиск по имени");
+// Поведение плейсхолдера
+        responsibleSearchField.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent e) {
+                if (responsibleSearchField.getText().equals("Введите ФИО ответственного")) {
+                    responsibleSearchField.setText("");
+                    responsibleSearchField.setForeground(Color.BLACK);
+                }
+            }
+
+            public void focusLost(java.awt.event.FocusEvent e) {
+                if (responsibleSearchField.getText().isEmpty()) {
+                    responsibleSearchField.setForeground(Color.GRAY);
+                    responsibleSearchField.setText("Введите ФИО ответственного");
+                }
+            }
+        });
+
+
+        JButton btnSearchResponsible = new JButton("Поиск проектов");
         btnSearchResponsible.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnSearchResponsible.addActionListener(e -> {
             String inputName = responsibleSearchField.getText().trim();
