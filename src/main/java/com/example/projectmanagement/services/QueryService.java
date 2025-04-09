@@ -192,21 +192,63 @@ public class QueryService {
         return responsibles;
     }
 
-    public List<String> getAllResponsibles() {
-        List<String> responsibles = new ArrayList<>();
-        String sql = "SELECT name FROM responsibles";
+    public List<Responsible> getAllResponsibles() {
+        List<Responsible> responsibles = new ArrayList<>();
+        String sql = "SELECT id, name, contact FROM responsibles";
 
         try (Connection conn = DatabaseManager.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
-                responsibles.add(rs.getString("name"));
+                responsibles.add(new Responsible(
+                        rs.getInt("id"),
+                        rs.getString("name"),
+                        rs.getString("contact")
+                ));
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return responsibles;
+    }
+
+    public List<Task> getUnfinishedTasksByResponsibleId(int responsibleId) {
+        List<Task> result = new ArrayList<>();
+
+        String sql = "SELECT t.id, t.project_id, t.responsible_id, t.task_name, t.start_date, t.duration, t.finished, " +
+                "r.name AS full_name, " +
+                "CASE WHEN INSTR(r.contact, ',') > 0 THEN SUBSTR(r.contact, 1, INSTR(r.contact, ',') - 1) ELSE r.contact END AS phone, " +
+                "CASE WHEN INSTR(r.contact, ',') > 0 THEN SUBSTR(r.contact, INSTR(r.contact, ',') + 2) ELSE 'Нет email' END AS email " +
+                "FROM tasks t " +
+                "JOIN responsibles r ON t.responsible_id = r.id " +
+                "WHERE (LOWER(TRIM(t.finished)) = 'нет' OR t.finished = 0) " +
+                "AND t.responsible_id = ?";
+
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, responsibleId);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                result.add(new Task(
+                        rs.getInt("id"),
+                        rs.getInt("project_id"),
+                        rs.getInt("responsible_id"),
+                        rs.getString("task_name"),
+                        rs.getString("start_date"),
+                        rs.getInt("duration"),
+                        rs.getInt("finished") == 1,
+                        rs.getString("full_name"),
+                        rs.getString("phone"),
+                        rs.getString("email")
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return result;
     }
 
     public List<Task> getAllUnfinishedTasks() {

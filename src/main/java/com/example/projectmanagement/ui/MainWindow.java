@@ -188,26 +188,64 @@ public class MainWindow extends JFrame {
     }
 
     private void showUnfinishedTasksForResponsible() {
-        List<String> responsibleNames = queryService.getAllResponsibles();
-        if (responsibleNames.isEmpty()) {
+        List<Responsible> responsibles = queryService.getAllResponsibles();
+        if (responsibles.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Нет доступных ответственных!", "Ошибка", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        String selectedResponsible = (String) JOptionPane.showInputDialog(
+        // Преобразуем в массив строк для отображения в списке
+        String[] displayNames = responsibles.stream()
+                .map(r -> r.getName() + " (" + r.getContact() + ")")
+                .toArray(String[]::new);
+
+        String selectedDisplay = (String) JOptionPane.showInputDialog(
                 this,
                 "Выберите ответственного:",
                 "Выбор ответственного",
                 JOptionPane.QUESTION_MESSAGE,
                 null,
-                responsibleNames.toArray(),
-                responsibleNames.get(0)
+                displayNames,
+                displayNames[0]
         );
 
-        if (selectedResponsible != null) {
-            showUnfinishedTasksForResponsible(selectedResponsible); // вызываем основной метод
+        if (selectedDisplay != null) {
+            int selectedIndex = -1;
+            for (int i = 0; i < displayNames.length; i++) {
+                if (displayNames[i].equals(selectedDisplay)) {
+                    selectedIndex = i;
+                    break;
+                }
+            }
+
+            if (selectedIndex != -1) {
+                int selectedId = responsibles.get(selectedIndex).getId();
+                showUnfinishedTasksForResponsibleById(selectedId); // используем новый метод
+            }
         }
     }
+
+    private void showUnfinishedTasksForResponsibleById(int responsibleId) {
+        List<Task> tasks = queryService.getUnfinishedTasksByResponsibleId(responsibleId);
+
+        if (tasks.isEmpty()) {
+            textArea.setText("Незавершённых задач для выбранного ответственного не найдено.");
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        Task firstTask = tasks.get(0);
+        sb.append("Незавершённые задачи для: ").append(firstTask.getResponsibleFullName()).append("\n");
+        sb.append("Телефон: ").append(firstTask.getPhone()).append("\n");
+        sb.append("Email: ").append(firstTask.getEmail()).append("\n\n");
+
+        for (Task task : tasks) {
+            sb.append(task).append("\n");
+        }
+
+        textArea.setText(sb.toString());
+    }
+
 
 
     private void showTasksForToday() {
